@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trajectory Simulator</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0b1020;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 20px;
+            color: #7dd3fc;
+        }
+
+        form {
+            background: #111a33;
+            padding: 20px;
+            margin: 20px auto;
+            width: 400px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #38bdf8;
+            border: none;
+            border-radius: 8px;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0ea5e9;
+        }
+
+        h2 {
+            text-align: center;
+            margin-top: 30px;
+            color: #a5f3fc;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .card {
+            background: #111a33;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.4);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #60a5fa;
+            border-bottom: 1px solid #233;
+            padding-bottom: 5px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 4px 0;
+            font-size: 14px;
+            color: #e5e7eb;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            color: #cbd5e1;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: none;
+        }
+    </style>
+    <script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+    </script>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+</head>
+
+<body>
+
+<h1>🚀 Trajectory Simulator (Earth → Jupiter)</h1>
+<h1>By Arthur VIGIER</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Calculate</button>
+</form>
+
+{% if result %}
+
+<h2>Results</h2>
+
+<div class="container">
+
+    <div class="card">
+        <h3>Earth Escape Phase</h3>
+        <ul>
+            {% for key, value in result.earth_escape.items %}
+                <li>{{ value|safe }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="card">
+        <h3>Heliocentric Phase</h3>
+        <ul>
+            {% for key, value in result.heliocentric.items %}
+                <li>{{ value|safe }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="card">
+        <h3>Transfer Phase</h3>
+        <ul>
+            {% for key, value in result.transfer.items %}
+                <li>{{ value|safe }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="card">
+        <h3>Jupiter Flyby Phase</h3>
+        <ul>
+            {% for key, value in result.jupiter_flyby.items %}
+                <li>{{ value|safe }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+</div>
+
+{% endif %}
+
+<div style="max-width: 1000px; margin: 40px auto; padding: 25px; background: #111a33; border-radius: 12px; line-height: 1.6;">
+
+<h2>🧠 Detailed Physical Explanation</h2>
+
+<!-- ===================== -->
+<h3>🌍 1. Earth Escape Phase</h3>
+
+<p>
+The spacecraft starts in a circular orbit around Earth at altitude \( z_p \).
+The distance from Earth's center is:
+</p>
+
+<p>
+$$
+r = R_E + z_p
+$$
+</p>
+
+<p>
+The circular velocity is obtained from gravitational equilibrium:
+</p>
+
+<p>
+$$
+V_{200} = \sqrt{\frac{\mu_E}{r}}
+$$
+</p>
+
+<p>
+A propulsion burn adds \( \Delta V \), giving:
+</p>
+
+<p>
+$$
+V_p = V_{200} + \Delta V
+$$
+</p>
+
+<p>
+If this velocity exceeds escape velocity, the spacecraft enters a <b>hyperbolic trajectory</b>.
+The orbit energy becomes positive:
+</p>
+
+<p>
+$$
+\epsilon = \frac{V_p^2}{2} - \frac{\mu_E}{r} > 0
+$$
+</p>
+
+<p>
+From this, we derive the semi-major axis (negative for hyperbola):
+</p>
+
+<p>
+$$
+a = \frac{\mu_E}{V_p^2 - \frac{2\mu_E}{r}}
+$$
+</p>
+
+<p>
+The <b>hyperbolic excess velocity</b> represents the velocity far away from Earth:
+</p>
+
+<p>
+$$
+V_{\infty} = \sqrt{\frac{\mu_E}{a}}
+$$
+</p>
+
+<p>
+This is the key quantity used for interplanetary transfers.
+</p>
+
+<p>
+Escape time is computed using hyperbolic anomaly:
+</p>
+
+<p>
+$$
+t = \sqrt{\frac{a^3}{\mu_E}} (e \sinh E - E)
+$$
+</p>
+
+---
+
+<!-- ===================== -->
+<h3>☀️ 2. Heliocentric Phase</h3>
+
+<p>
+Once the spacecraft leaves Earth's sphere of influence, we switch to a frame centered on the Sun.
+</p>
+
+<p>
+Earth moves at:
+</p>
+
+<p>
+$$
+V_E = \sqrt{\frac{\mu_S}{r_{ES}}}
+$$
+</p>
+
+<p>
+The spacecraft velocity relative to the Sun is obtained by vector addition:
+</p>
+
+<p>
+$$
+V_{S0} = \sqrt{V_E^2 + V_{\infty}^2 + 2 V_E V_{\infty} \cos(\theta)}
+$$
+</p>
+
+<p>
+This comes directly from the law of cosines.
+</p>
+
+<p>
+The angle \( \theta \) determines whether the spacecraft gains or loses energy.
+</p>
+
+---
+
+<!-- ===================== -->
+<h3>🛰️ 3. Transfer Orbit</h3>
+
+<p>
+The spacecraft now follows an orbit around the Sun.
+The total energy is:
+</p>
+
+<p>
+$$
+\epsilon = \frac{V^2}{2} - \frac{\mu_S}{r}
+$$
+</p>
+
+<p>
+From this energy, we compute the semi-major axis:
+</p>
+
+<p>
+$$
+a = -\frac{\mu_S}{2\epsilon}
+$$
+</p>
+
+<p>
+This defines the shape of the transfer orbit.
+</p>
+
+<p>
+At Jupiter distance, velocity becomes:
+</p>
+
+<p>
+$$
+V = \sqrt{2\left(\frac{\mu_S}{r} - \frac{\mu_S}{2a}\right)}
+$$
+</p>
+
+<p>
+Jupiter itself moves at:
+</p>
+
+<p>
+$$
+V_J = \sqrt{\frac{\mu_S}{r_J}}
+$$
+</p>
+
+<p>
+The relative velocity between spacecraft and Jupiter is:
+</p>
+
+<p>
+$$
+V_{\infty,J} = \sqrt{V^2 + V_J^2 - 2 V V_J \cos(\gamma)}
+$$
+</p>
+
+<p>
+This determines how strong the gravity assist will be.
+</p>
+
+---
+
+<!-- ===================== -->
+<h3>🪐 4. Jupiter Flyby</h3>
+
+<p>
+Near Jupiter, the spacecraft follows a hyperbolic trajectory:
+</p>
+
+<p>
+$$
+a_H = \frac{\mu_J}{V_{\infty,J}^2}
+$$
+</p>
+
+<p>
+The eccentricity is:
+</p>
+
+<p>
+$$
+e = 1 + \frac{r_p}{a_H}
+$$
+</p>
+
+<p>
+The turning angle of the trajectory is:
+</p>
+
+<p>
+$$
+\varphi = \arccos\left(\frac{1}{e}\right)
+$$
+</p>
+
+<p>
+This angle determines how much the spacecraft trajectory is deflected.
+</p>
+
+<p>
+The gravity assist modifies the spacecraft velocity direction, allowing:
+</p>
+
+<ul>
+<li>Increase of heliocentric energy 🚀</li>
+<li>Change of trajectory direction</li>
+<li>Access to outer planets</li>
+</ul>
+
+---
+
+<h3>🚀 Conclusion</h3>
+
+<p>
+This simulation combines:
+</p>
+
+<ul>
+<li>Orbital mechanics (Kepler laws)</li>
+<li>Energy conservation</li>
+<li>Hyperbolic trajectories</li>
+<li>Gravity assist physics</li>
+</ul>
+
+<p>
+It represents a simplified but realistic interplanetary mission design.
+</p>
+
+</div>
+<a href="{% url 'generate_pdf' %}">
+    <button type="button">📄 Download PDF</button>
+</a>
+
+</body>
+</html>
