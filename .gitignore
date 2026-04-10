@@ -31,3 +31,8 @@ Thumbs.db
 
 trajectory.png
 hyperbola.png
+
+__pycache__/
+*.pyc
+db.sqlite3
+staticfiles/
