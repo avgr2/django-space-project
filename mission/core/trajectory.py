@@ -222,6 +222,7 @@ def compute_trajectory(
                 "gamma_deg": rf"$\gamma = {round(gamma * 180 / pi, 2)} \mathrm{{^\circ}} $",
                 "V_J": rf"$V_{{J}} = {round(V_J,2)}\ \mathrm{{km/s}} $",
                 "V_inf1": rf"$V_{{\infty 1}} = {round(V_inf1,2)}\ \mathrm{{km/s}} $",
+                "line": "-----------------------------------------------------",
                 "t_transfer": rf"$t_{{transfer}} = {round(t2)} \mathrm{{s}}$",
                 "t_transfer_readable": rf"$t_{{transfer}} = {seconds_to_readable(round(t2))} \mathrm{{s}}$",
             },
