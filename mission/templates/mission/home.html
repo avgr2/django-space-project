@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pioneer 11 — Simulateur de trajectoire</title>
+    <title>Pioneer 11 — Trajectory Simulator</title>
 
     <script>
     window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
@@ -137,7 +137,8 @@
         .btn-pdf:hover { background: #153d22; }
 
         /* ─── results panel ─── */
-        .results-panel { display: flex; flex-direction: column; gap: .9rem; }
+        .results-panel { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; align-items: start; }
+        @media (max-width: 900px) { .results-panel { grid-template-columns: 1fr; } }
 
         .section {
             background: #111a33;
@@ -173,11 +174,12 @@
         }
         .row:last-child { border-bottom: none; }
 
-        .lbl { font-size: .75rem; color: #5a80a0; white-space: nowrap; }
-        .val { font-size: .85rem; color: #d0e8ff; font-weight: bold; text-align: right; }
-        .unit { font-size: .7rem; color: #4a6a8a; font-weight: normal; margin-left: .15rem; }
+        .lbl { font-size: .75rem; color: #90b8d8; white-space: nowrap; }
+        .val { font-size: .85rem; color: #38bdf8; font-weight: bold; text-align: right; }
+        .unit { font-size: .7rem; color: #7a9abf; font-weight: normal; margin-left: .15rem; }
 
         /* ─── summary ─── */
+        .summary { grid-column: 1 / -1; }
         .summary {
             background: #0d1f35;
             border: 1px solid #3a7abf;
@@ -194,8 +196,8 @@
             font-size: .85rem;
         }
         .sum-row:last-child { border-bottom: none; }
-        .sum-row .lbl { color: #7a9abf; }
-        .sum-row .val { color: #7dd3fc; font-weight: bold; }
+        .sum-row .lbl { color: #a0c4e0; }
+        .sum-row .val { color: #38bdf8; font-weight: bold; }
         .sum-row.total { padding-top: .6rem; margin-top: .4rem; border-top: 2px solid #3a7abf; font-size: .95rem; }
         .sum-row.total .lbl { color: #e0f0ff; }
         .sum-row.total .val { color: #fde68a; }
@@ -225,20 +227,40 @@
         }
 
         .explainer h2 { color: #7dd3fc; margin-bottom: 1rem; }
-        .explainer h3 { color: #60a5fa; margin: 1.2rem 0 .5rem; }
+        .explainer h3 { color: #60a5fa; margin: 1.8rem 0 .6rem; border-left: 3px solid #1e3a5f; padding-left: .8rem; }
+        .explainer h4 { color: #93c5fd; margin: 1rem 0 .4rem; font-size: .92rem; text-transform: uppercase; letter-spacing: .06em; }
         .explainer p { margin-bottom: .6rem; }
+        .explainer ul { margin: .4rem 0 .7rem 1.4rem; }
+        .explainer ul li { margin-bottom: .25rem; }
+        .deriv {
+            background: #0d1829;
+            border-left: 3px solid #3a7abf;
+            border-radius: 0 6px 6px 0;
+            padding: .7rem 1.2rem;
+            margin: .6rem 0 .9rem;
+            font-size: .9rem;
+        }
+        .note {
+            background: #0d2010;
+            border-left: 3px solid #2a7a4a;
+            border-radius: 0 6px 6px 0;
+            padding: .6rem 1rem;
+            margin: .5rem 0 .8rem;
+            color: #86efac;
+            font-size: .87rem;
+        }
     </style>
 </head>
 <body>
 
-<h1>PIONEER 11 — SIMULATEUR DE TRAJECTOIRE</h1>
-<p class="byline">Terre &rarr; Jupiter (swing-by) &rarr; Neptune &nbsp;|&nbsp; Arthur VIGIER</p>
+<h1>PIONEER 11 — TRAJECTORY SIMULATOR</h1>
+<p class="byline">Earth &rarr; Jupiter (swing-by) &rarr; Neptune &nbsp;|&nbsp; Arthur VIGIER</p>
 
 <div class="layout">
 
-    <!-- FORMULAIRE -->
+    <!-- FORM -->
     <div class="form-panel">
-        <p class="panel-title">Paramètres</p>
+        <p class="panel-title">Parameters</p>
 
         <form method="post" action="">
             {% csrf_token %}
@@ -256,101 +278,101 @@
                 {% endif %}
             </div>
             {% endfor %}
-            <button class="btn-calc" type="submit">&#9654; CALCULER</button>
+            <button class="btn-calc" type="submit">&#9654; COMPUTE</button>
         </form>
 
         {% if result %}
         <a class="btn-pdf" href="{% url 'generate_pdf' %}?V_a={{ result.V_a }}&z_p={{ result.z_p }}&z_J={{ result.z_J }}&fac={{ result.fac }}">
-            &#128196; Télécharger PDF
+            &#128196; Download PDF
         </a>
         {% endif %}
     </div>
 
-    <!-- RÉSULTATS -->
+    <!-- RESULTS -->
     <div class="results-panel">
 
         {% if error %}
-        <div class="error-box">Erreur de calcul : {{ error }}</div>
+        <div class="error-box">Calculation error: {{ error }}</div>
 
         {% elif result %}
 
         <div class="section">
-            <div class="section-header">1 — Hyperbole de départ (Terre)</div>
+            <div class="section-header">1 — Departure Hyperbola (Earth)</div>
             <div class="section-body">
-                <div class="row"><span class="lbl">V_a</span><span class="val">{{ result.V_a }}<span class="unit">km/s</span></span></div>
-                <div class="row"><span class="lbl">C₃</span><span class="val">{{ result.C3 }}<span class="unit">km²/s²</span></span></div>
-                <div class="row"><span class="lbl">V∞ hyperbolique</span><span class="val">{{ result.V_inf }}<span class="unit">km/s</span></span></div>
-                <div class="row"><span class="lbl">ΔV injection</span><span class="val">{{ result.delta_V }}<span class="unit">km/s</span></span></div>
-                <div class="row"><span class="lbl">φ* asymptote</span><span class="val">{{ result.phi_star }}<span class="unit">°</span></span></div>
-                <div class="row"><span class="lbl">Temps → SOI</span><span class="val">{{ result.t1_str }}</span></div>
+                <div class="row"><span class="lbl">$V_a$</span><span class="val">{{ result.V_a }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">$C_3$</span><span class="val">{{ result.C3 }}<span class="unit">km²/s²</span></span></div>
+                <div class="row"><span class="lbl">$V_\infty$ hyperbolic</span><span class="val">{{ result.V_inf }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">$\Delta V$ injection</span><span class="val">{{ result.delta_V }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">$\varphi^*$ asymptote</span><span class="val">{{ result.phi_star }}<span class="unit">°</span></span></div>
+                <div class="row"><span class="lbl">Time → SOI</span><span class="val">{{ result.t1_str }}</span></div>
             </div>
         </div>
 
         <div class="section">
-            <div class="section-header">2 — Injection héliocentrique</div>
+            <div class="section-header">2 — Heliocentric Injection</div>
             <div class="section-body">
-                <div class="row"><span class="lbl">V_T (orb. Terre)</span><span class="val">{{ result.V_T }}<span class="unit">km/s</span></span></div>
-                <div class="row"><span class="lbl">V_P (départ hélio.)</span><span class="val">{{ result.V_P }}<span class="unit">km/s</span></span></div>
-                <div class="row"><span class="lbl">β</span><span class="val">{{ result.beta }}<span class="unit">°</span></span></div>
-                <div class="row"><span class="lbl">α</span><span class="val">{{ result.alpha }}<span class="unit">°</span></span></div>
+                <div class="row"><span class="lbl">$V_T$ (Earth orb.)</span><span class="val">{{ result.V_T }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">$V_P$ (helio. departure)</span><span class="val">{{ result.V_P }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">$\beta$</span><span class="val">{{ result.beta }}<span class="unit">°</span></span></div>
+                <div class="row"><span class="lbl">$\alpha$</span><span class="val">{{ result.alpha }}<span class="unit">°</span></span></div>
             </div>
         </div>
 
         <div class="section">
-            <div class="section-header">3 — Transfert Terre → Jupiter (ellipse)</div>
+            <div class="section-header">3 — Earth → Jupiter Transfer (ellipse)</div>
             <div class="section-body">
-                <div class="row"><span class="lbl">a₂</span><span class="val">{{ result.a_2_Mkm }}<span class="unit">Mkm</span></span></div>
-                <div class="row"><span class="lbl">e₂</span><span class="val">{{ result.e_2 }}</span></div>
-                <div class="row"><span class="lbl">φ₂ (anomalie exc.)</span><span class="val">{{ result.phi_2 }}<span class="unit">°</span></span></div>
-                <div class="row"><span class="lbl">Temps de vol</span><span class="val">{{ result.t2_str }}</span></div>
+                <div class="row"><span class="lbl">$a_2$</span><span class="val">{{ result.a_2_Mkm }}<span class="unit">Mkm</span></span></div>
+                <div class="row"><span class="lbl">$e_2$</span><span class="val">{{ result.e_2 }}</span></div>
+                <div class="row"><span class="lbl">$\varphi_2$ (exc. anomaly)</span><span class="val">{{ result.phi_2 }}<span class="unit">°</span></span></div>
+                <div class="row"><span class="lbl">Flight time</span><span class="val">{{ result.t2_str }}</span></div>
             </div>
         </div>
 
         <div class="section">
-            <div class="section-header">4 — Arrivée à Jupiter</div>
+            <div class="section-header">4 — Jupiter Arrival</div>
             <div class="section-body">
-                <div class="row"><span class="lbl">V_J (orb. Jupiter)</span><span class="val">{{ result.V_J }}<span class="unit">km/s</span></span></div>
-                <div class="row"><span class="lbl">V_S1 (sonde)</span><span class="val">{{ result.V_S1 }}<span class="unit">km/s</span></span></div>
-                <div class="row"><span class="lbl">V_R = V∞ relative</span><span class="val">{{ result.V_R }}<span class="unit">km/s</span></span></div>
-                <div class="row"><span class="lbl">γ (angle traj.)</span><span class="val">{{ result.gamma }}<span class="unit">°</span></span></div>
+                <div class="row"><span class="lbl">$V_J$ (Jupiter orb.)</span><span class="val">{{ result.V_J }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">$V_{S1}$ (probe)</span><span class="val">{{ result.V_S1 }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">$V_R = V_\infty$ relative</span><span class="val">{{ result.V_R }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">$\gamma$ (traj. angle)</span><span class="val">{{ result.gamma }}<span class="unit">°</span></span></div>
             </div>
         </div>
 
         <div class="section">
-            <div class="section-header">5 — Swing-by Jupiter (hyperbole jovienne)</div>
+            <div class="section-header">5 — Jupiter Swing-by (Jovian hyperbola)</div>
             <div class="section-body">
-                <div class="row"><span class="lbl">z_J (périjove)</span><span class="val">{{ result.z_J }}<span class="unit">km</span></span></div>
-                <div class="row"><span class="lbl">r_périjove</span><span class="val">{{ result.r_pJ }}<span class="unit">km</span></span></div>
-                <div class="row"><span class="lbl">e_h (hyperbole)</span><span class="val">{{ result.e_hJ }}</span></div>
-                <div class="row"><span class="lbl">δ (déviation)</span><span class="val">{{ result.delta_deg }}<span class="unit">°</span></span></div>
-                <div class="row"><span class="lbl">V_périjove</span><span class="val">{{ result.V_pJ }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">$z_J$ (perijove)</span><span class="val">{{ result.z_J }}<span class="unit">km</span></span></div>
+                <div class="row"><span class="lbl">$r_{pJ}$</span><span class="val">{{ result.r_pJ }}<span class="unit">km</span></span></div>
+                <div class="row"><span class="lbl">$e_h$ (hyperbola)</span><span class="val">{{ result.e_hJ }}</span></div>
+                <div class="row"><span class="lbl">$\delta$ (deflection)</span><span class="val">{{ result.delta_deg }}<span class="unit">°</span></span></div>
+                <div class="row"><span class="lbl">$V_{pJ}$</span><span class="val">{{ result.V_pJ }}<span class="unit">km/s</span></span></div>
             </div>
         </div>
 
         <div class="section">
-            <div class="section-header">6 — Sortie swing-by</div>
+            <div class="section-header">6 — Swing-by Exit</div>
             <div class="section-body">
-                <div class="row"><span class="lbl">α₃ (angle sortie)</span><span class="val">{{ result.alpha_3 }}<span class="unit">°</span></span></div>
-                <div class="row"><span class="lbl">V_S2 (post-flyby)</span><span class="val">{{ result.V_S2 }}<span class="unit">km/s</span></span></div>
-                <div class="row"><span class="lbl">E₂ (énergie hélio.)</span><span class="val">{{ result.E2 }}<span class="unit">km²/s²  &gt; 0 → non liée</span></span></div>
+                <div class="row"><span class="lbl">$\alpha_3$ (exit angle)</span><span class="val">{{ result.alpha_3 }}<span class="unit">°</span></span></div>
+                <div class="row"><span class="lbl">$V_{S2}$ (post-flyby)</span><span class="val">{{ result.V_S2 }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">$E_2$ (helio. energy)</span><span class="val">{{ result.E2 }}<span class="unit">km²/s²  &gt; 0 → unbound</span></span></div>
             </div>
         </div>
 
         <div class="section">
-            <div class="section-header">7 — Transfert Jupiter → Neptune (hyperbole solaire)</div>
+            <div class="section-header">7 — Jupiter → Neptune Transfer (solar hyperbola)</div>
             <div class="section-body">
-                <div class="row"><span class="lbl">Temps de vol</span><span class="val">{{ result.t3_str }}</span></div>
+                <div class="row"><span class="lbl">Flight time</span><span class="val">{{ result.t3_str }}</span></div>
             </div>
         </div>
 
         <div class="summary">
-            <p class="panel-title">Bilan de mission</p>
-            <div class="sum-row"><span class="lbl">Terre → SOI</span><span class="val">{{ result.t1_str }}</span></div>
-            <div class="sum-row"><span class="lbl">Terre → Jupiter</span><span class="val">{{ result.t2_str }}</span></div>
+            <p class="panel-title">Mission Summary</p>
+            <div class="sum-row"><span class="lbl">Earth → SOI</span><span class="val">{{ result.t1_str }}</span></div>
+            <div class="sum-row"><span class="lbl">Earth → Jupiter</span><span class="val">{{ result.t2_str }}</span></div>
             <div class="sum-row"><span class="lbl">Jupiter → Neptune</span><span class="val">{{ result.t3_str }}</span></div>
             <div class="sum-row total">
                 <span class="lbl">TOTAL</span>
-                <span class="val">{{ result.total_str }}&nbsp;&nbsp;({{ result.total_y }} ans)</span>
+                <span class="val">{{ result.total_str }}&nbsp;&nbsp;({{ result.total_y }} yrs)</span>
             </div>
         </div>
 
@@ -358,45 +380,457 @@
     </div>
 </div>
 
-<!-- EXPLICATION PHYSIQUE -->
+<!-- PHYSICAL EXPLANATION -->
 <div class="explainer">
-    <h2>Explication physique</h2>
+    <h2>Physical Explanation</h2>
 
-    <h3>1. Hyperbole de départ (Terre)</h3>
     <p>
-        La sonde part d'une orbite circulaire à altitude $z_p$.
-        Après le burn d'injection à $V_a$, l'énergie hyperbolique vaut
-        $C_3 = V_a^2 - 2\mu_E/r > 0$, et la vitesse à l'infini est $V_\infty = \sqrt{C_3}$.
+        This simulator models the trajectory of Pioneer 11 in three successive phases, each governed by a
+        distinct two-body problem: (1) a geocentric hyperbola at departure, (2) a heliocentric ellipse from
+        Earth to Jupiter, and (3) a heliocentric hyperbola from Jupiter to Neptune, unlocked by a gravitational
+        assist at Jupiter. The following sections derive every formula used in the simulation from first principles.
+        Throughout this report, $\mu = GM$ denotes the gravitational parameter of the central body, and all
+        quantities are expressed in the International Astronomical System (km, km/s, seconds).
     </p>
 
-    <h3>2. Injection héliocentrique</h3>
+    <!-- ════════════════════════════════════════ -->
+    <h3>1 — Departure Hyperbola (Geocentric Phase)</h3>
+
+    <h4>1.1 Parking orbit and injection burn</h4>
     <p>
-        À la sortie de la sphère d'influence, la vitesse relative à la Terre se compose
-        vectoriellement avec la vitesse orbitale de la Terre :
-        $V_P = \sqrt{V_T^2 + V_\infty^2 - 2V_T V_\infty \cos\alpha}$.
+        The probe begins on a circular parking orbit of radius $r = R_E + z_p$, where $R_E = 6\,371\ \text{km}$
+        is Earth's mean radius and $z_p$ is the parking altitude. On a circular orbit, gravitational acceleration
+        exactly provides the centripetal force:
+    </p>
+    <div class="deriv">
+        $$\frac{\mu_E}{r^2} = \frac{V_c^2}{r} \quad\Longrightarrow\quad V_c = \sqrt{\frac{\mu_E}{r}}$$
+        with $\mu_E = 398\,600\ \text{km}^3\text{/s}^2$.
+    </div>
+    <p>
+        An impulsive burn (Hohmann-type $\Delta V$ at perigee) raises the speed to $V_a$.
+        The required $\Delta V$ is simply:
+        $$\Delta V = V_a - V_c$$
     </p>
 
-    <h3>3. Transfert Terre → Jupiter</h3>
+    <h4>1.2 Specific orbital energy and characteristic energy $C_3$</h4>
     <p>
-        La sonde suit une ellipse héliocentrique de demi-grand axe
-        $a_2 = -\mu_S / (2\mathcal{E})$. Le temps de vol est calculé
-        via l'anomalie excentrique de Kepler.
+        The specific mechanical energy (energy per unit mass) of the resulting trajectory is given by the
+        <em>vis-viva equation</em>, which combines kinetic and potential energy:
+    </p>
+    <div class="deriv">
+        $$\mathcal{E} = \frac{V^2}{2} - \frac{\mu_E}{r} = \text{const along the trajectory}$$
+        Evaluated at the burn point $r$, with $V = V_a$:
+        $$\mathcal{E} = \frac{V_a^2}{2} - \frac{\mu_E}{r}$$
+    </div>
+    <p>
+        The sign of $\mathcal{E}$ determines the conic section:
+        $\mathcal{E} < 0$ → ellipse (bound orbit),
+        $\mathcal{E} = 0$ → parabola (escape with zero residual speed),
+        $\mathcal{E} > 0$ → hyperbola (escape with positive residual speed).
+        The <em>characteristic energy</em> is defined as $C_3 = 2\mathcal{E}$, which is the standard
+        launch performance metric in mission design:
+        $$C_3 = V_a^2 - \frac{2\mu_E}{r}$$
     </p>
 
-    <h3>4 &amp; 5. Swing-by Jupiter</h3>
+    <h4>1.3 Hyperbolic excess velocity $V_\infty$</h4>
     <p>
-        Près de Jupiter la sonde suit une hyperbole jovienne.
-        L'angle de déviation est $\delta = 2\arcsin(1/e_h)$ avec
-        $e_h = 1 + r_{pJ} V_\infty^2 / \mu_J$.
-        En choisissant le bon côté de passage, la sonde gagne de l'énergie héliocentrique.
+        At infinite distance from Earth ($r \to \infty$), the potential energy $-\mu_E/r \to 0$, so all the
+        specific energy is kinetic. The vis-viva equation gives:
+    </p>
+    <div class="deriv">
+        $$\mathcal{E} = \frac{V_\infty^2}{2} \quad\Longrightarrow\quad V_\infty = \sqrt{2\mathcal{E}} = \sqrt{C_3}$$
+    </div>
+    <p>
+        $V_\infty$ is the <em>hyperbolic excess velocity</em>: the speed the probe retains after escaping Earth's
+        gravity well. It is the speed that the probe carries into interplanetary space and is the key quantity
+        for designing the heliocentric transfer.
     </p>
 
-    <h3>6 &amp; 7. Trajectoire vers Neptune</h3>
+    <h4>1.4 Hyperbola geometry and asymptote angle</h4>
     <p>
-        Après le swing-by, $E_2 > 0$ : la sonde n'est plus liée au Soleil.
-        Le temps de vol Jupiter → Neptune est calculé par intégration numérique
-        $\displaystyle t_3 = \int_{r_J}^{r_N} \frac{dr}{\sqrt{2(E_2 + \mu_S/r)}}$.
+        For a hyperbolic orbit, the semi-major axis $a_h$ is defined as negative (convention for unbound orbits):
+        $$a_h = -\frac{\mu_E}{2\mathcal{E}} = -\frac{\mu_E}{C_3} < 0$$
+        The eccentricity is related to the perigee radius $r$ and the semi-major axis by:
+        $$e_h = 1 - \frac{r}{a_h} = 1 + \frac{r\,C_3}{\mu_E} > 1$$
+        The asymptote of the hyperbola makes an angle $\varphi^*$ with the apse line (the line connecting Earth
+        to the perigee). This angle satisfies $\cos\varphi^* = -1/e_h$, derived from the polar equation of the
+        conic at $r \to \infty$:
     </p>
+    <div class="deriv">
+        $$r = \frac{a_h(e_h^2-1)}{1 + e_h\cos\nu} \xrightarrow{r\to\infty} 1 + e_h\cos\nu_\infty = 0
+        \quad\Longrightarrow\quad \cos\varphi^* = -\frac{1}{e_h}$$
+    </div>
+    <p>
+        The angle $\varphi^*$ sets the departure direction in the geocentric frame and must be aligned with the
+        direction toward Jupiter in the heliocentric frame.
+    </p>
+
+    <h4>1.5 Time to exit the Sphere of Influence</h4>
+    <p>
+        Earth's Sphere of Influence (SOI) is approximated by the Hill sphere radius:
+        $$r_{\rm SOI} \approx r_T \left(\frac{m_E}{3\,m_S}\right)^{1/3} \approx 924\,000\ \text{km}$$
+        The time for the probe to travel from the burn point to the SOI boundary is computed using the
+        hyperbolic analogue of Kepler's equation. Introducing the hyperbolic anomaly $F$, defined by:
+        $$r = a_h(1 - e_h\cosh F)$$
+        and solving for $F$ at $r = r_{\rm SOI}$, the time of flight is:
+    </p>
+    <div class="deriv">
+        $$t_1 = \sqrt{\frac{(-a_h)^3}{\mu_E}}\,(e_h\sinh F_{\rm SOI} - F_{\rm SOI})$$
+    </div>
+    <div class="note">
+        Physical interpretation: $t_1$ is typically a few days. During this time the probe is still
+        dominated by Earth's gravity. Beyond the SOI, the Sun becomes the dominant body and the geocentric
+        description is abandoned in favour of the heliocentric one.
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h3>2 — Heliocentric Injection</h3>
+
+    <h4>2.1 Earth's orbital velocity</h4>
+    <p>
+        Earth orbits the Sun on a nearly circular orbit at radius $r_T = 149\,597\,870\ \text{km}$ (1 AU).
+        Its orbital velocity is:
+        $$V_T = \sqrt{\frac{\mu_S}{r_T}} \approx 29.78\ \text{km/s} \qquad \mu_S = 1.327\times10^{11}\ \text{km}^3\text{/s}^2$$
+    </p>
+
+    <h4>2.2 Velocity composition at the SOI boundary</h4>
+    <p>
+        At the SOI boundary, the probe's velocity in the geocentric frame has magnitude $V_\infty$ and is
+        directed along the outgoing asymptote. In the heliocentric frame, this velocity must be added
+        vectorially to Earth's orbital velocity $\vec{V}_T$. Applying the law of cosines to the velocity triangle:
+    </p>
+    <div class="deriv">
+        $$V_P = |\vec{V}_T + \vec{V}_\infty| = \sqrt{V_T^2 + V_\infty^2 + 2\,V_T V_\infty\cos\theta}$$
+        where $\theta$ is the angle between $\vec{V}_T$ and $\vec{V}_\infty$.
+        Defining $\alpha = \pi - \theta$ (supplement angle for convenience):
+        $$V_P = \sqrt{V_T^2 + V_\infty^2 - 2\,V_T V_\infty\cos\alpha}$$
+    </div>
+    <p>
+        The angle $\alpha$ is determined by the departure geometry. To maximise $V_P$ (and thus the heliocentric
+        energy), one ideally sets $\alpha = 0$ (prograde injection, $\vec{V}_\infty$ parallel to $\vec{V}_T$),
+        giving $V_{P,\max} = V_T + V_\infty$. In practice, $\alpha$ is constrained by the required Jupiter
+        encounter geometry.
+    </p>
+
+    <h4>2.3 Flight path angle $\beta$</h4>
+    <p>
+        The flight path angle $\beta$ is the angle between the heliocentric velocity vector $\vec{V}_P$ and
+        the local horizontal (tangent to Earth's orbit). It is given by:
+        $$\tan\beta = \frac{V_\infty\sin\alpha}{V_T - V_\infty\cos\alpha}$$
+        A non-zero $\beta$ means the probe is not departing along a Hohmann transfer and the transfer orbit
+        perihelion does not coincide exactly with Earth's orbit radius.
+    </p>
+
+    <!-- ════════════════════════════════════════ -->
+    <h3>3 — Earth → Jupiter Transfer (Heliocentric Ellipse)</h3>
+
+    <h4>3.1 Semi-major axis from energy</h4>
+    <p>
+        In the heliocentric frame, the probe's specific energy at departure is:
+        $$\mathcal{E}_{\rm helio} = \frac{V_P^2}{2} - \frac{\mu_S}{r_T}$$
+        For a bound transfer to Jupiter ($\mathcal{E}_{\rm helio} < 0$), the vis-viva relation gives the semi-major axis:
+    </p>
+    <div class="deriv">
+        $$a_2 = -\frac{\mu_S}{2\,\mathcal{E}_{\rm helio}} = \frac{\mu_S}{2\mu_S/r_T - V_P^2}$$
+    </div>
+
+    <h4>3.2 Eccentricity</h4>
+    <p>
+        The eccentricity $e_2$ of the transfer ellipse is found from the perihelion condition.
+        The perihelion radius of the ellipse is the point where the probe moves purely tangentially,
+        i.e., the radial velocity is zero. Using the orbit equation:
+        $$r_{\rm peri} = a_2(1 - e_2) \qquad r_{\rm aph} = a_2(1 + e_2)$$
+        If we assume the departure is at (or near) perihelion at $r_T$, and the arrival is near aphelion at $r_J$:
+    </p>
+    <div class="deriv">
+        $$e_2 = \frac{r_J - r_T}{r_J + r_T}$$
+        (This is the classical Hohmann transfer eccentricity. When $\beta \neq 0$, $e_2$ is computed
+        from the full angular momentum vector instead.)
+    </div>
+
+    <h4>3.3 Time of flight via Kepler's equation</h4>
+    <p>
+        The time of flight on an elliptic arc cannot be expressed in closed form using the true anomaly $\nu$.
+        Kepler introduced the <em>eccentric anomaly</em> $E$ via the geometric relation:
+        $$r = a_2\,(1 - e_2\cos E)$$
+        The eccentric anomaly at Earth's orbit (perihelion, $r = r_T$) is $E_0 = 0$.
+        The eccentric anomaly $\varphi_2$ at Jupiter's orbit ($r = r_J$) is found by solving:
+    </p>
+    <div class="deriv">
+        $$r_J = a_2\,(1 - e_2\cos\varphi_2) \quad\Longrightarrow\quad \cos\varphi_2 = \frac{1 - r_J/a_2}{e_2}$$
+    </div>
+    <p>
+        The <em>mean anomaly</em> $M$ is defined to grow linearly with time: $M = n\,t$ where
+        $n = \sqrt{\mu_S/a_2^3}$ is the mean motion. Kepler's equation relates $M$ to $E$:
+        $$M = E - e_2\sin E$$
+        The time elapsed between perihelion ($E = 0$) and the eccentric anomaly $\varphi_2$ is therefore:
+    </p>
+    <div class="deriv">
+        $$t_2 = \frac{1}{n}\,(\varphi_2 - e_2\sin\varphi_2) = \sqrt{\frac{a_2^3}{\mu_S}}\,(\varphi_2 - e_2\sin\varphi_2)$$
+    </div>
+    <div class="note">
+        For a classical Hohmann transfer to Jupiter, $t_2 \approx 2.74\ \text{years}$. Pioneer 11's actual
+        flight time to Jupiter was about 1.9 years due to a more energetic injection ($V_P > V_{\rm Hohmann}$).
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h3>4 — Jupiter Arrival</h3>
+
+    <h4>4.1 Probe speed at Jupiter via vis-viva</h4>
+    <p>
+        Energy is conserved along the heliocentric transfer ellipse. The specific energy computed at
+        departure equals that at arrival:
+        $$\frac{V_{S1}^2}{2} - \frac{\mu_S}{r_J} = \frac{V_P^2}{2} - \frac{\mu_S}{r_T} = \mathcal{E}_{\rm helio}$$
+        Solving for $V_{S1}$:
+    </p>
+    <div class="deriv">
+        $$V_{S1} = \sqrt{V_P^2 + 2\mu_S\!\left(\frac{1}{r_J} - \frac{1}{r_T}\right)}$$
+    </div>
+
+    <h4>4.2 Jupiter's orbital velocity and relative speed</h4>
+    <p>
+        Jupiter moves on a nearly circular orbit at $r_J \approx 778.5 \times 10^6\ \text{km}$:
+        $$V_J = \sqrt{\frac{\mu_S}{r_J}} \approx 13.07\ \text{km/s}$$
+        The probe's velocity relative to Jupiter (expressed as a vector difference) is:
+        $$\vec{V}_R = \vec{V}_{S1} - \vec{V}_J$$
+        Its magnitude $V_R = |\vec{V}_R|$ and its direction (angle $\gamma$ relative to the tangential direction)
+        fully characterise the entry conditions into the Jovian hyperbola. Using the law of cosines:
+    </p>
+    <div class="deriv">
+        $$V_R = \sqrt{V_{S1}^2 + V_J^2 - 2\,V_{S1}\,V_J\cos\gamma}$$
+    </div>
+    <p>
+        This $V_R$ plays the role of $V_\infty$ for the Jovian two-body problem: it is the speed the probe
+        has relative to Jupiter when it is far from the planet.
+    </p>
+
+    <!-- ════════════════════════════════════════ -->
+    <h3>5 — Jupiter Swing-by (Jovian Hyperbola)</h3>
+
+    <h4>5.1 Geometry of the Jovian hyperbola</h4>
+    <p>
+        In the Jupicocentric frame, the probe enters with speed $V_R$ at large distance. The closest
+        approach (perijove) is set at altitude $z_J$ above Jupiter's cloud tops ($R_J = 71\,492\ \text{km}$):
+        $$r_{pJ} = R_J + z_J$$
+        At perijove, all specific energy is conserved (vis-viva), giving:
+    </p>
+    <div class="deriv">
+        $$\frac{V_{pJ}^2}{2} - \frac{\mu_J}{r_{pJ}} = \frac{V_R^2}{2} \quad\Longrightarrow\quad
+        V_{pJ} = \sqrt{V_R^2 + \frac{2\mu_J}{r_{pJ}}}$$
+        with $\mu_J = 1.267 \times 10^8\ \text{km}^3\text{/s}^2$.
+    </div>
+
+    <h4>5.2 Eccentricity of the Jovian hyperbola</h4>
+    <p>
+        For a hyperbolic orbit, the perijove radius is related to the semi-major axis by
+        $r_{pJ} = |a_J|(e_h - 1)$ (the probe passes the focus on the near side).
+        The semi-major axis of the Jovian hyperbola is $|a_J| = \mu_J / V_R^2$ (derived from
+        $\mathcal{E}_J = V_R^2/2 = \mu_J/(2|a_J|)$). Substituting:
+    </p>
+    <div class="deriv">
+        $$e_h - 1 = \frac{r_{pJ}}{|a_J|} = \frac{r_{pJ}\,V_R^2}{\mu_J}
+        \quad\Longrightarrow\quad e_h = 1 + \frac{r_{pJ}\,V_R^2}{\mu_J}$$
+    </div>
+    <p>
+        Since $r_{pJ} > 0$ and $V_R > 0$, we always have $e_h > 1$, confirming the hyperbolic nature.
+        A larger perijove $r_{pJ}$ or a larger relative speed $V_R$ both increase $e_h$, which reduces
+        the deflection (the hyperbola becomes more "open").
+    </p>
+
+    <h4>5.3 Deflection angle</h4>
+    <p>
+        The probe enters along the inbound asymptote and exits along the outbound asymptote, both
+        passing through the focus (Jupiter). The true anomaly of the asymptote $\nu_\infty$ satisfies:
+        $$1 + e_h\cos\nu_\infty = 0 \quad\Longrightarrow\quad \nu_\infty = \arccos\!\left(-\frac{1}{e_h}\right) \in \left(\frac{\pi}{2},\pi\right)$$
+        The total deflection angle $\delta$ between the inbound and outbound velocity vectors is:
+    </p>
+    <div class="deriv">
+        $$\delta = 2\nu_\infty - \pi$$
+        Using $\sin(\delta/2) = \sin(\nu_\infty - \pi/2) = -\cos\nu_\infty = 1/e_h$:
+        $$\boxed{\delta = 2\arcsin\!\left(\frac{1}{e_h}\right)}$$
+    </div>
+    <div class="note">
+        The deflection $\delta$ is maximised when $e_h \to 1$ ($\delta \to \pi$, a U-turn) and decreases
+        as $e_h$ increases. For Pioneer 11, $\delta \approx 70°$ to $90°$ depending on the perijove altitude.
+    </div>
+
+    <h4>5.4 Energy gain mechanism</h4>
+    <p>
+        In the Jupicocentric frame, the field is conservative: the magnitude $|\vec{V}_R|$ is strictly
+        conserved throughout the flyby (only the direction rotates by $\delta$). However, in the
+        heliocentric frame, the outgoing Jupicocentric velocity $\vec{V}_R'$ (rotated by $\delta$)
+        composes differently with $\vec{V}_J$:
+    </p>
+    <div class="deriv">
+        $$\vec{V}_{S2} = \vec{V}_J + \vec{V}_R' \qquad \text{(after the flyby)}$$
+        $$|\vec{V}_{S2}|^2 = V_J^2 + V_R^2 + 2\,V_J\,V_R\cos\theta_{\rm out}$$
+        compared to the entry: $|\vec{V}_{S1}|^2 = V_J^2 + V_R^2 + 2\,V_J\,V_R\cos\theta_{\rm in}$
+    </div>
+    <p>
+        The energy gain is $\Delta\mathcal{E} = (V_{S2}^2 - V_{S1}^2)/2 = V_J V_R(\cos\theta_{\rm out} - \cos\theta_{\rm in})$.
+        By choosing a trailing-side flyby (the probe passes behind Jupiter in its orbital direction),
+        the rotation $\delta$ turns $\vec{V}_R$ to be more aligned with $\vec{V}_J$, so
+        $\cos\theta_{\rm out} > \cos\theta_{\rm in}$, and $\Delta\mathcal{E} > 0$.
+        The probe gains energy; Jupiter loses the same amount — but given Jupiter's mass
+        ($1.9\times10^{27}\ \text{kg}$), the effect on its orbit is entirely negligible.
+    </p>
+
+    <!-- ════════════════════════════════════════ -->
+    <h3>6 — Swing-by Exit and Heliocentric Escape</h3>
+
+    <h4>6.1 Post-flyby heliocentric velocity</h4>
+    <p>
+        After the deflection by angle $\delta$, the outgoing Jupicocentric velocity $\vec{V}_R'$ has the
+        same magnitude $V_R$ but its direction has rotated by $\delta$ relative to the inbound direction.
+        In the heliocentric frame:
+        $$\vec{V}_{S2} = \vec{V}_J + \vec{V}_R'$$
+        The exit angle $\alpha_3$ (angle of $\vec{V}_{S2}$ with the Sun–Jupiter radial axis) is found
+        by projecting both components onto the radial and tangential axes.
+    </p>
+
+    <h4>6.2 Post-flyby heliocentric energy and escape condition</h4>
+    <p>
+        The specific heliocentric energy after the swing-by, evaluated at Jupiter's position $r_J$, is:
+    </p>
+    <div class="deriv">
+        $$E_2 = \frac{V_{S2}^2}{2} - \frac{\mu_S}{r_J}$$
+    </div>
+    <p>
+        The heliocentric escape condition at distance $r_J$ from the Sun requires:
+        $$V_{S2} \geq V_{\rm esc,\odot}(r_J) = \sqrt{\frac{2\mu_S}{r_J}} \approx 18.5\ \text{km/s}$$
+        Equivalently, $E_2 > 0$. When this condition is met, the probe is on a hyperbolic heliocentric
+        trajectory and will escape the Solar System without any additional thrust.
+    </p>
+    <div class="note">
+        Pioneer 11 achieved $E_2 > 0$ after its Jupiter flyby in December 1974, becoming one of the first
+        man-made objects on a Solar System escape trajectory, alongside Pioneer 10.
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h3>7 — Jupiter → Neptune Transfer (Hyperbolic Solar Trajectory)</h3>
+
+    <h4>7.1 Equations of motion and energy integral</h4>
+    <p>
+        On the outbound trajectory, the probe is subject only to the Sun's gravity (all planetary
+        perturbations neglected). The specific mechanical energy is conserved:
+        $$\mathcal{E} = \frac{V^2}{2} - \frac{\mu_S}{r} = E_2 = \text{const} > 0$$
+        The velocity can be decomposed into radial $\dot{r}$ and tangential $r\dot{\nu}$ components.
+        Using the conservation of specific angular momentum $L = r^2\dot{\nu}$:
+    </p>
+    <div class="deriv">
+        $$V^2 = \dot{r}^2 + \frac{L^2}{r^2} \quad\Longrightarrow\quad
+        \dot{r} = \frac{dr}{dt} = \sqrt{2\!\left(E_2 + \frac{\mu_S}{r}\right) - \frac{L^2}{r^2}}$$
+    </div>
+
+    <h4>7.2 Approximation and flight time integral</h4>
+    <p>
+        Beyond Jupiter, the probe's trajectory is nearly radial: the angular momentum term $L^2/r^2$
+        decreases as $1/r^2$ and becomes negligible compared to the energy term $2E_2$ for large $r$.
+        This approximation simplifies the integral significantly:
+    </p>
+    <div class="deriv">
+        $$\frac{L^2}{r^2} \ll 2E_2 \quad\text{for } r \gg r_J \quad\Longrightarrow\quad
+        \dot{r} \approx \sqrt{2E_2 + \frac{2\mu_S}{r}}$$
+        Separating variables:
+        $$dt = \frac{dr}{\sqrt{2E_2 + 2\mu_S/r}}$$
+        Integrating from Jupiter ($r_J$) to Neptune ($r_N$):
+        $$t_3 = \int_{r_J}^{r_N} \frac{dr}{\sqrt{2\!\left(E_2 + \dfrac{\mu_S}{r}\right)}}$$
+    </div>
+    <p>
+        This integral has no closed-form solution in general and is evaluated numerically.
+        Neptune is at $r_N \approx 4.495\times10^9\ \text{km} \approx 30.07\ \text{AU}$.
+    </p>
+    <div class="note">
+        Pioneer 11 reached Neptune's orbit in 1990, approximately 16 years after launch.
+        At that distance, the probe was travelling at roughly 10 km/s and radio signals
+        took about 4 hours to reach Earth.
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <h3>Overall Energy Budget and Mission Summary</h3>
+    <p>
+        The table below tracks the specific heliocentric energy $\mathcal{E}$ at each mission phase.
+        The gravitational assist is the only mechanism that increases the heliocentric energy without
+        propellant expenditure:
+    </p>
+    <table style="border-collapse:collapse;font-size:.82rem;margin:.8rem 0 1.2rem;width:100%">
+        <thead>
+            <tr style="border-bottom:1px solid #2a4a6a;color:#38bdf8">
+                <th style="text-align:left;padding:.3rem .6rem">Phase</th>
+                <th style="padding:.3rem .6rem">Dominant body</th>
+                <th style="padding:.3rem .6rem">Trajectory type</th>
+                <th style="padding:.3rem .6rem">Energy $\mathcal{E}$</th>
+            </tr>
+        </thead>
+        <tbody style="color:#a0c4e0">
+            <tr style="border-bottom:1px solid #1a2a3a">
+                <td style="padding:.25rem .6rem">Parking orbit → SOI</td>
+                <td style="text-align:center;padding:.25rem .6rem">Earth</td>
+                <td style="text-align:center;padding:.25rem .6rem">Geocentric hyperbola</td>
+                <td style="text-align:center;padding:.25rem .6rem">$C_3/2 > 0$</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a2a3a">
+                <td style="padding:.25rem .6rem">Earth → Jupiter</td>
+                <td style="text-align:center;padding:.25rem .6rem">Sun</td>
+                <td style="text-align:center;padding:.25rem .6rem">Heliocentric ellipse</td>
+                <td style="text-align:center;padding:.25rem .6rem">$\mathcal{E}_{\rm helio} < 0$</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a2a3a">
+                <td style="padding:.25rem .6rem">Jupiter flyby</td>
+                <td style="text-align:center;padding:.25rem .6rem">Jupiter</td>
+                <td style="text-align:center;padding:.25rem .6rem">Jovian hyperbola</td>
+                <td style="text-align:center;padding:.25rem .6rem">$V_R^2/2 > 0$ (conserved)</td>
+            </tr>
+            <tr>
+                <td style="padding:.25rem .6rem">Jupiter → Neptune</td>
+                <td style="text-align:center;padding:.25rem .6rem">Sun</td>
+                <td style="text-align:center;padding:.25rem .6rem">Heliocentric hyperbola</td>
+                <td style="text-align:center;padding:.25rem .6rem">$E_2 > 0$</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>
+        The gravitational assist converts Jupiter's orbital kinetic energy into probe energy. The energy
+        gained by the probe per unit mass is $\Delta\mathcal{E} = E_2 - \mathcal{E}_{\rm helio}$.
+        Jupiter loses exactly the same amount of energy, but given its mass ($M_J \approx 1.9\times10^{27}\ \text{kg}$),
+        the corresponding change in its orbital speed is less than $10^{-20}\ \text{m/s}$ — truly negligible.
+        The table below summarises the gravitational constants used throughout:
+    </p>
+    <table style="border-collapse:collapse;font-size:.82rem;margin:.8rem 0;width:100%">
+        <thead>
+            <tr style="border-bottom:1px solid #2a4a6a;color:#38bdf8">
+                <th style="text-align:left;padding:.3rem .6rem">Body</th>
+                <th style="padding:.3rem .6rem">$\mu\ \text{(km}^3\text{/s}^2\text{)}$</th>
+                <th style="padding:.3rem .6rem">Radius (km)</th>
+                <th style="padding:.3rem .6rem">Distance from Sun (AU)</th>
+                <th style="padding:.3rem .6rem">Orbital speed (km/s)</th>
+            </tr>
+        </thead>
+        <tbody style="color:#a0c4e0">
+            <tr style="border-bottom:1px solid #1a2a3a">
+                <td style="padding:.25rem .6rem">Earth</td>
+                <td style="text-align:center;padding:.25rem .6rem">398 600</td>
+                <td style="text-align:center;padding:.25rem .6rem">6 371</td>
+                <td style="text-align:center;padding:.25rem .6rem">1.000</td>
+                <td style="text-align:center;padding:.25rem .6rem">29.78</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a2a3a">
+                <td style="padding:.25rem .6rem">Jupiter</td>
+                <td style="text-align:center;padding:.25rem .6rem">126 686 534</td>
+                <td style="text-align:center;padding:.25rem .6rem">71 492</td>
+                <td style="text-align:center;padding:.25rem .6rem">5.203</td>
+                <td style="text-align:center;padding:.25rem .6rem">13.07</td>
+            </tr>
+            <tr>
+                <td style="padding:.25rem .6rem">Neptune</td>
+                <td style="text-align:center;padding:.25rem .6rem">6 836 529</td>
+                <td style="text-align:center;padding:.25rem .6rem">24 622</td>
+                <td style="text-align:center;padding:.25rem .6rem">30.07</td>
+                <td style="text-align:center;padding:.25rem .6rem">5.43</td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 
 </body>
