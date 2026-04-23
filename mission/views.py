@@ -11,13 +11,13 @@ from .core.plot import generate_real_trajectory, generate_hyperbola
 
 def generate_pdf(request, result):
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="pioneer11_report.pdf"'
+    response['Content-Disposition'] = 'attachment; filename="Trajectory_report.pdf"'
 
     doc = SimpleDocTemplate(response)
     styles = getSampleStyleSheet()
     content = []
 
-    content.append(Paragraph("Pioneer 11 — Trajectory Report", styles['Title']))
+    content.append(Paragraph("Trajectory Report", styles['Title']))
     content.append(Spacer(1, 20))
 
     try:
@@ -35,52 +35,52 @@ def generate_pdf(request, result):
         pass
 
     sections = [
-        ("1 — Hyperbole départ (Terre)", [
+        ("1 — Departure Hyperbola (Earth)", [
             ("V_a", f"{result['V_a']} km/s"),
             ("C3", f"{result['C3']} km²/s²"),
             ("V∞", f"{result['V_inf']} km/s"),
             ("ΔV injection", f"{result['delta_V']} km/s"),
             ("φ* asymptote", f"{result['phi_star']}°"),
-            ("Temps → SOI", result['t1_str']),
+            ("Time → SOI", result['t1_str']),
         ]),
-        ("2 — Injection héliocentrique", [
+        ("2 — Heliocentric Injection", [
             ("V_T", f"{result['V_T']} km/s"),
             ("V_P", f"{result['V_P']} km/s"),
             ("β", f"{result['beta']}°"),
             ("α", f"{result['alpha']}°"),
         ]),
-        ("3 — Transfert Terre → Jupiter", [
-            ("a₂", f"{result['a_2_Mkm']} Mkm"),
-            ("e₂", str(result['e_2'])),
-            ("φ₂", f"{result['phi_2']}°"),
-            ("Temps de vol", result['t2_str']),
+        ("3 — Earth → Jupiter Transfer", [
+            ("a_2", f"{result['a_2_Mkm']} Mkm"),
+            ("e_2", str(result['e_2'])),
+            ("φ_2", f"{result['phi_2']}°"),
+            ("Time of flight", result['t2_str']),
         ]),
-        ("4 — Arrivée Jupiter", [
+        ("4 — Jupiter Arrival", [
             ("V_J", f"{result['V_J']} km/s"),
             ("V_S1", f"{result['V_S1']} km/s"),
             ("V_R (V∞)", f"{result['V_R']} km/s"),
             ("γ", f"{result['gamma']}°"),
         ]),
-        ("5 — Swing-by Jupiter", [
+        ("5 — Jupiter Swing-by", [
             ("z_J", f"{result['z_J']} km"),
-            ("r_périjove", f"{result['r_pJ']} km"),
+            ("Perijove radius", f"{result['r_pJ']} km"),
             ("e_h", str(result['e_hJ'])),
-            ("δ déviation", f"{result['delta_deg']}°"),
-            ("V_périjove", f"{result['V_pJ']} km/s"),
+            ("δ deflection", f"{result['delta_deg']}°"),
+            ("Perijove velocity", f"{result['V_pJ']} km/s"),
         ]),
-        ("6 — Sortie swing-by", [
-            ("α₃", f"{result['alpha_3']}°"),
+        ("6 — Swing-by Exit", [
+            ("α_3", f"{result['alpha_3']}°"),
             ("V_S2", f"{result['V_S2']} km/s"),
-            ("E₂", f"{result['E2']} km²/s²"),
+            ("E_2", f"{result['E2']} km²/s²"),
         ]),
-        ("7 — Transfert Jupiter → Neptune", [
-            ("Temps de vol", result['t3_str']),
+        ("7 — Jupiter → Neptune Transfer", [
+            ("Time of flight", result['t3_str']),
         ]),
-        ("Bilan de mission", [
-            ("Terre → SOI", result['t1_str']),
-            ("Terre → Jupiter", result['t2_str']),
+        ("Mission Summary", [
+            ("Earth → SOI", result['t1_str']),
+            ("Earth → Jupiter", result['t2_str']),
             ("Jupiter → Neptune", result['t3_str']),
-            ("TOTAL", f"{result['total_str']}  ({result['total_y']} ans)"),
+            ("TOTAL", f"{result['total_str']}  ({result['total_y']} years)"),
         ]),
     ]
 
