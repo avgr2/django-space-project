@@ -1,14 +1,17 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pioneer 11 — Trajectory Simulator</title>
+    <title>EJN — Trajectory Simulator</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'mission/favicon.png' %}">
 
     <script>
     window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="icon" type="image/png" sizes="32x32" href="staticfiles/admin/img/Hohmann_tr.png">
 
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -253,7 +256,7 @@
 </head>
 <body>
 
-<h1>PIONEER 11 — TRAJECTORY SIMULATOR</h1>
+<h1>Earth - Jupiter - Neptune —- TRAJECTORY SIMULATOR</h1>
 <p class="byline">Earth &rarr; Jupiter (swing-by) &rarr; Neptune &nbsp;|&nbsp; Arthur VIGIER</p>
 
 <div class="layout">
