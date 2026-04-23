@@ -1,425 +1,403 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Trajectory Simulator</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pioneer 11 — Simulateur de trajectoire</title>
+
+    <script>
+    window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             background: #0b1020;
-            color: #ffffff;
-            margin: 0;
-            padding: 0;
+            color: #c8d8f0;
+            padding: 1.5rem 1rem 3rem;
         }
 
         h1 {
             text-align: center;
-            padding: 20px;
             color: #7dd3fc;
+            font-size: 1.4rem;
+            letter-spacing: .12em;
+            margin-bottom: .25rem;
         }
 
-        form {
-            background: #111a33;
-            padding: 20px;
-            margin: 20px auto;
-            width: 400px;
-            border-radius: 12px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            background: #38bdf8;
-            border: none;
-            border-radius: 8px;
-            color: black;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #0ea5e9;
-        }
-
-        h2 {
+        .byline {
             text-align: center;
-            margin-top: 30px;
-            color: #a5f3fc;
+            color: #475569;
+            font-size: .8rem;
+            letter-spacing: .08em;
+            margin-bottom: 1.8rem;
         }
 
-        .container {
+        /* ─── layout ─── */
+        .layout {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            padding: 20px;
+            grid-template-columns: 300px 1fr;
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
         }
+        @media (max-width: 820px) { .layout { grid-template-columns: 1fr; } }
 
-        .card {
+        /* ─── form panel ─── */
+        .form-panel {
             background: #111a33;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.4);
+            border: 1px solid #1e3a5f;
+            border-radius: 10px;
+            padding: 1.3rem;
+            height: fit-content;
+            position: sticky;
+            top: 1rem;
         }
 
-        .card h3 {
-            margin-top: 0;
-            color: #60a5fa;
-            border-bottom: 1px solid #233;
-            padding-bottom: 5px;
+        .panel-title {
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: #7dd3fc;
+            margin-bottom: 1.1rem;
+            padding-bottom: .4rem;
+            border-bottom: 1px solid #1e3a5f;
         }
 
-        ul {
-            list-style: none;
-            padding: 0;
-        }
+        .field { margin-bottom: 1rem; }
 
-        li {
-            padding: 4px 0;
-            font-size: 14px;
-            color: #e5e7eb;
-        }
-
-        label {
+        .field label {
             display: block;
-            margin-top: 10px;
-            color: #cbd5e1;
+            font-size: .72rem;
+            color: #7a9abf;
+            margin-bottom: .3rem;
+            line-height: 1.4;
         }
 
-        input {
+        .field label strong {
+            display: block;
+            font-size: .9rem;
+            color: #e0f0ff;
+        }
+
+        .field input[type=number] {
             width: 100%;
-            padding: 8px;
-            margin-top: 5px;
+            background: #0d1520;
+            border: 1px solid #2a4a6a;
+            border-radius: 5px;
+            color: #7dd3fc;
+            font-family: 'Courier New', monospace;
+            font-size: .95rem;
+            padding: .45rem .6rem;
+        }
+
+        .field input[type=number]:focus {
+            outline: none;
+            border-color: #4a8abf;
+        }
+
+        .errorlist { list-style: none; color: #f87171; font-size: .72rem; margin-top: .25rem; }
+
+        .btn-calc {
+            width: 100%;
+            padding: .65rem;
+            background: #1a4a7a;
+            border: 1px solid #3a7abf;
             border-radius: 6px;
-            border: none;
+            color: #7dd3fc;
+            font-family: 'Courier New', monospace;
+            font-size: .9rem;
+            letter-spacing: .08em;
+            cursor: pointer;
+            margin-top: .3rem;
+            transition: background .15s;
         }
+        .btn-calc:hover { background: #205a96; }
+
+        .btn-pdf {
+            display: block;
+            width: 100%;
+            padding: .55rem;
+            background: #0f2a1a;
+            border: 1px solid #2a7a4a;
+            border-radius: 6px;
+            color: #6ee7b7;
+            font-family: 'Courier New', monospace;
+            font-size: .82rem;
+            letter-spacing: .06em;
+            cursor: pointer;
+            margin-top: .6rem;
+            text-decoration: none;
+            text-align: center;
+            transition: background .15s;
+        }
+        .btn-pdf:hover { background: #153d22; }
+
+        /* ─── results panel ─── */
+        .results-panel { display: flex; flex-direction: column; gap: .9rem; }
+
+        .section {
+            background: #111a33;
+            border: 1px solid #1e3a5f;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #0d1f35;
+            padding: .45rem 1rem;
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: #38bdf8;
+            border-bottom: 1px solid #1e3a5f;
+        }
+
+        .section-body {
+            padding: .75rem 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: .35rem 1.5rem;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: .4rem;
+            padding: .2rem 0;
+            border-bottom: 1px solid #141e30;
+        }
+        .row:last-child { border-bottom: none; }
+
+        .lbl { font-size: .75rem; color: #5a80a0; white-space: nowrap; }
+        .val { font-size: .85rem; color: #d0e8ff; font-weight: bold; text-align: right; }
+        .unit { font-size: .7rem; color: #4a6a8a; font-weight: normal; margin-left: .15rem; }
+
+        /* ─── summary ─── */
+        .summary {
+            background: #0d1f35;
+            border: 1px solid #3a7abf;
+            border-radius: 10px;
+            padding: 1rem 1.3rem;
+        }
+        .summary .panel-title { color: #7dd3fc; }
+
+        .sum-row {
+            display: flex;
+            justify-content: space-between;
+            padding: .28rem 0;
+            border-bottom: 1px solid #1e3a5f;
+            font-size: .85rem;
+        }
+        .sum-row:last-child { border-bottom: none; }
+        .sum-row .lbl { color: #7a9abf; }
+        .sum-row .val { color: #7dd3fc; font-weight: bold; }
+        .sum-row.total { padding-top: .6rem; margin-top: .4rem; border-top: 2px solid #3a7abf; font-size: .95rem; }
+        .sum-row.total .lbl { color: #e0f0ff; }
+        .sum-row.total .val { color: #fde68a; }
+
+        /* ─── error ─── */
+        .error-box {
+            background: #2a0a0a;
+            border: 1px solid #7a2020;
+            border-radius: 8px;
+            padding: .9rem 1rem;
+            color: #f87171;
+            font-size: .82rem;
+        }
+
+        /* ─── explanation ─── */
+        .explainer {
+            max-width: 1200px;
+            margin: 2.5rem auto 0;
+            background: #111a33;
+            border: 1px solid #1e3a5f;
+            border-radius: 10px;
+            padding: 1.5rem 2rem;
+            line-height: 1.7;
+            color: #b0c8e0;
+            font-family: Arial, sans-serif;
+            font-size: .92rem;
+        }
+
+        .explainer h2 { color: #7dd3fc; margin-bottom: 1rem; }
+        .explainer h3 { color: #60a5fa; margin: 1.2rem 0 .5rem; }
+        .explainer p { margin-bottom: .6rem; }
     </style>
-    <script>
-    window.MathJax = {
-        tex: {
-            inlineMath: [['$', '$'], ['\\(', '\\)']]
-        }
-    };
-    </script>
-
-    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
 </head>
-
 <body>
 
-<h1>🚀 Trajectory Simulator (Earth → Jupiter → Neptune)</h1>
-<h1>By</h1>
-<h1>Arthur VIGIER</h1>
+<h1>PIONEER 11 — SIMULATEUR DE TRAJECTOIRE</h1>
+<p class="byline">Terre &rarr; Jupiter (swing-by) &rarr; Neptune &nbsp;|&nbsp; Arthur VIGIER</p>
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Calculate</button>
-</form>
+<div class="layout">
 
-{% if result %}
+    <!-- FORMULAIRE -->
+    <div class="form-panel">
+        <p class="panel-title">Paramètres</p>
 
-<h2>Results</h2>
-
-<div class="container">
-
-    <div class="card">
-        <h3>Earth Escape Phase</h3>
-        <ul>
-            {% for key, value in result.earth_escape.items %}
-                <li>{{ value|safe }}</li>
+        <form method="post" action="">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="field">
+                <label>
+                    <strong>{{ field.name }}</strong>
+                    {{ field.label|slice:"7:" }}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <ul class="errorlist">
+                    {% for e in field.errors %}<li>{{ e }}</li>{% endfor %}
+                </ul>
+                {% endif %}
+            </div>
             {% endfor %}
-        </ul>
+            <button class="btn-calc" type="submit">&#9654; CALCULER</button>
+        </form>
+
+        {% if result %}
+        <a class="btn-pdf" href="{% url 'generate_pdf' %}?V_a={{ result.V_a }}&z_p={{ result.z_p }}&z_J={{ result.z_J }}&fac={{ result.fac }}">
+            &#128196; Télécharger PDF
+        </a>
+        {% endif %}
     </div>
 
-    <div class="card">
-        <h3>Heliocentric Phase</h3>
-        <ul>
-            {% for key, value in result.heliocentric.items %}
-                <li>{{ value|safe }}</li>
-            {% endfor %}
-        </ul>
-    </div>
+    <!-- RÉSULTATS -->
+    <div class="results-panel">
 
-    <div class="card">
-        <h3>Transfer Phase</h3>
-        <ul>
-            {% for key, value in result.transfer.items %}
-                <li>{{ value|safe }}</li>
-            {% endfor %}
-        </ul>
-    </div>
+        {% if error %}
+        <div class="error-box">Erreur de calcul : {{ error }}</div>
 
-    <div class="card">
-        <h3>Jupiter Flyby Phase</h3>
-        <ul>
-            {% for key, value in result.jupiter_flyby.items %}
-                <li>{{ value|safe }}</li>
-            {% endfor %}
-        </ul>
-    </div>
+        {% elif result %}
 
+        <div class="section">
+            <div class="section-header">1 — Hyperbole de départ (Terre)</div>
+            <div class="section-body">
+                <div class="row"><span class="lbl">V_a</span><span class="val">{{ result.V_a }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">C₃</span><span class="val">{{ result.C3 }}<span class="unit">km²/s²</span></span></div>
+                <div class="row"><span class="lbl">V∞ hyperbolique</span><span class="val">{{ result.V_inf }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">ΔV injection</span><span class="val">{{ result.delta_V }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">φ* asymptote</span><span class="val">{{ result.phi_star }}<span class="unit">°</span></span></div>
+                <div class="row"><span class="lbl">Temps → SOI</span><span class="val">{{ result.t1_str }}</span></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">2 — Injection héliocentrique</div>
+            <div class="section-body">
+                <div class="row"><span class="lbl">V_T (orb. Terre)</span><span class="val">{{ result.V_T }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">V_P (départ hélio.)</span><span class="val">{{ result.V_P }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">β</span><span class="val">{{ result.beta }}<span class="unit">°</span></span></div>
+                <div class="row"><span class="lbl">α</span><span class="val">{{ result.alpha }}<span class="unit">°</span></span></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">3 — Transfert Terre → Jupiter (ellipse)</div>
+            <div class="section-body">
+                <div class="row"><span class="lbl">a₂</span><span class="val">{{ result.a_2_Mkm }}<span class="unit">Mkm</span></span></div>
+                <div class="row"><span class="lbl">e₂</span><span class="val">{{ result.e_2 }}</span></div>
+                <div class="row"><span class="lbl">φ₂ (anomalie exc.)</span><span class="val">{{ result.phi_2 }}<span class="unit">°</span></span></div>
+                <div class="row"><span class="lbl">Temps de vol</span><span class="val">{{ result.t2_str }}</span></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">4 — Arrivée à Jupiter</div>
+            <div class="section-body">
+                <div class="row"><span class="lbl">V_J (orb. Jupiter)</span><span class="val">{{ result.V_J }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">V_S1 (sonde)</span><span class="val">{{ result.V_S1 }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">V_R = V∞ relative</span><span class="val">{{ result.V_R }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">γ (angle traj.)</span><span class="val">{{ result.gamma }}<span class="unit">°</span></span></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">5 — Swing-by Jupiter (hyperbole jovienne)</div>
+            <div class="section-body">
+                <div class="row"><span class="lbl">z_J (périjove)</span><span class="val">{{ result.z_J }}<span class="unit">km</span></span></div>
+                <div class="row"><span class="lbl">r_périjove</span><span class="val">{{ result.r_pJ }}<span class="unit">km</span></span></div>
+                <div class="row"><span class="lbl">e_h (hyperbole)</span><span class="val">{{ result.e_hJ }}</span></div>
+                <div class="row"><span class="lbl">δ (déviation)</span><span class="val">{{ result.delta_deg }}<span class="unit">°</span></span></div>
+                <div class="row"><span class="lbl">V_périjove</span><span class="val">{{ result.V_pJ }}<span class="unit">km/s</span></span></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">6 — Sortie swing-by</div>
+            <div class="section-body">
+                <div class="row"><span class="lbl">α₃ (angle sortie)</span><span class="val">{{ result.alpha_3 }}<span class="unit">°</span></span></div>
+                <div class="row"><span class="lbl">V_S2 (post-flyby)</span><span class="val">{{ result.V_S2 }}<span class="unit">km/s</span></span></div>
+                <div class="row"><span class="lbl">E₂ (énergie hélio.)</span><span class="val">{{ result.E2 }}<span class="unit">km²/s²  &gt; 0 → non liée</span></span></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">7 — Transfert Jupiter → Neptune (hyperbole solaire)</div>
+            <div class="section-body">
+                <div class="row"><span class="lbl">Temps de vol</span><span class="val">{{ result.t3_str }}</span></div>
+            </div>
+        </div>
+
+        <div class="summary">
+            <p class="panel-title">Bilan de mission</p>
+            <div class="sum-row"><span class="lbl">Terre → SOI</span><span class="val">{{ result.t1_str }}</span></div>
+            <div class="sum-row"><span class="lbl">Terre → Jupiter</span><span class="val">{{ result.t2_str }}</span></div>
+            <div class="sum-row"><span class="lbl">Jupiter → Neptune</span><span class="val">{{ result.t3_str }}</span></div>
+            <div class="sum-row total">
+                <span class="lbl">TOTAL</span>
+                <span class="val">{{ result.total_str }}&nbsp;&nbsp;({{ result.total_y }} ans)</span>
+            </div>
+        </div>
+
+        {% endif %}
+    </div>
 </div>
 
-{% endif %}
+<!-- EXPLICATION PHYSIQUE -->
+<div class="explainer">
+    <h2>Explication physique</h2>
 
-<div style="max-width: 1000px; margin: 40px auto; padding: 25px; background: #111a33; border-radius: 12px; line-height: 1.6;">
+    <h3>1. Hyperbole de départ (Terre)</h3>
+    <p>
+        La sonde part d'une orbite circulaire à altitude $z_p$.
+        Après le burn d'injection à $V_a$, l'énergie hyperbolique vaut
+        $C_3 = V_a^2 - 2\mu_E/r > 0$, et la vitesse à l'infini est $V_\infty = \sqrt{C_3}$.
+    </p>
 
-<h2>🧠 Detailed Physical Explanation</h2>
+    <h3>2. Injection héliocentrique</h3>
+    <p>
+        À la sortie de la sphère d'influence, la vitesse relative à la Terre se compose
+        vectoriellement avec la vitesse orbitale de la Terre :
+        $V_P = \sqrt{V_T^2 + V_\infty^2 - 2V_T V_\infty \cos\alpha}$.
+    </p>
 
-<!-- ===================== -->
-<h3>🌍 1. Earth Escape Phase</h3>
+    <h3>3. Transfert Terre → Jupiter</h3>
+    <p>
+        La sonde suit une ellipse héliocentrique de demi-grand axe
+        $a_2 = -\mu_S / (2\mathcal{E})$. Le temps de vol est calculé
+        via l'anomalie excentrique de Kepler.
+    </p>
 
-<p>
-The spacecraft starts in a circular orbit around Earth at altitude \( z_p \).
-The distance from Earth's center is:
-</p>
+    <h3>4 &amp; 5. Swing-by Jupiter</h3>
+    <p>
+        Près de Jupiter la sonde suit une hyperbole jovienne.
+        L'angle de déviation est $\delta = 2\arcsin(1/e_h)$ avec
+        $e_h = 1 + r_{pJ} V_\infty^2 / \mu_J$.
+        En choisissant le bon côté de passage, la sonde gagne de l'énergie héliocentrique.
+    </p>
 
-<p>
-$$
-r = R_E + z_p
-$$
-</p>
-
-<p>
-The circular velocity is obtained from gravitational equilibrium:
-</p>
-
-<p>
-$$
-V_{200} = \sqrt{\frac{\mu_E}{r}}
-$$
-</p>
-
-<p>
-A propulsion burn adds \( \Delta V \), giving:
-</p>
-
-<p>
-$$
-V_p = V_{200} + \Delta V
-$$
-</p>
-
-<p>
-If this velocity exceeds escape velocity, the spacecraft enters a <b>hyperbolic trajectory</b>.
-The orbit energy becomes positive:
-</p>
-
-<p>
-$$
-\epsilon = \frac{V_p^2}{2} - \frac{\mu_E}{r} > 0
-$$
-</p>
-
-<p>
-From this, we derive the semi-major axis (negative for hyperbola):
-</p>
-
-<p>
-$$
-a = \frac{\mu_E}{V_p^2 - \frac{2\mu_E}{r}}
-$$
-</p>
-
-<p>
-The <b>hyperbolic excess velocity</b> represents the velocity far away from Earth:
-</p>
-
-<p>
-$$
-V_{\infty} = \sqrt{\frac{\mu_E}{a}}
-$$
-</p>
-
-<p>
-This is the key quantity used for interplanetary transfers.
-</p>
-
-<p>
-Escape time is computed using hyperbolic anomaly:
-</p>
-
-<p>
-$$
-t = \sqrt{\frac{a^3}{\mu_E}} (e \sinh E - E)
-$$
-</p>
-
----
-
-<!-- ===================== -->
-<h3>☀️ 2. Heliocentric Phase</h3>
-
-<p>
-Once the spacecraft leaves Earth's sphere of influence, we switch to a frame centered on the Sun.
-</p>
-
-<p>
-Earth moves at:
-</p>
-
-<p>
-$$
-V_E = \sqrt{\frac{\mu_S}{r_{ES}}}
-$$
-</p>
-
-<p>
-The spacecraft velocity relative to the Sun is obtained by vector addition:
-</p>
-
-<p>
-$$
-V_{S0} = \sqrt{V_E^2 + V_{\infty}^2 + 2 V_E V_{\infty} \cos(\theta)}
-$$
-</p>
-
-<p>
-This comes directly from the law of cosines.
-</p>
-
-<p>
-The angle \( \theta \) determines whether the spacecraft gains or loses energy.
-</p>
-
----
-
-<!-- ===================== -->
-<h3>🛰️ 3. Transfer Orbit</h3>
-
-<p>
-The spacecraft now follows an orbit around the Sun.
-The total energy is:
-</p>
-
-<p>
-$$
-\epsilon = \frac{V^2}{2} - \frac{\mu_S}{r}
-$$
-</p>
-
-<p>
-From this energy, we compute the semi-major axis:
-</p>
-
-<p>
-$$
-a = -\frac{\mu_S}{2\epsilon}
-$$
-</p>
-
-<p>
-This defines the shape of the transfer orbit.
-</p>
-
-<p>
-At Jupiter distance, velocity becomes:
-</p>
-
-<p>
-$$
-V = \sqrt{2\left(\frac{\mu_S}{r} - \frac{\mu_S}{2a}\right)}
-$$
-</p>
-
-<p>
-Jupiter itself moves at:
-</p>
-
-<p>
-$$
-V_J = \sqrt{\frac{\mu_S}{r_J}}
-$$
-</p>
-
-<p>
-The relative velocity between spacecraft and Jupiter is:
-</p>
-
-<p>
-$$
-V_{\infty,J} = \sqrt{V^2 + V_J^2 - 2 V V_J \cos(\gamma)}
-$$
-</p>
-
-<p>
-This determines how strong the gravity assist will be.
-</p>
-
----
-
-<!-- ===================== -->
-<h3>🪐 4. Jupiter Flyby</h3>
-
-<p>
-Near Jupiter, the spacecraft follows a hyperbolic trajectory:
-</p>
-
-<p>
-$$
-a_H = \frac{\mu_J}{V_{\infty,J}^2}
-$$
-</p>
-
-<p>
-The eccentricity is:
-</p>
-
-<p>
-$$
-e = 1 + \frac{r_p}{a_H}
-$$
-</p>
-
-<p>
-The turning angle of the trajectory is:
-</p>
-
-<p>
-$$
-\varphi = \arccos\left(\frac{1}{e}\right)
-$$
-</p>
-
-<p>
-This angle determines how much the spacecraft trajectory is deflected.
-</p>
-
-<p>
-The gravity assist modifies the spacecraft velocity direction, allowing:
-</p>
-
-<ul>
-<li>Increase of heliocentric energy 🚀</li>
-<li>Change of trajectory direction</li>
-<li>Access to outer planets</li>
-</ul>
-
----
-
-<h3>🚀 Conclusion</h3>
-
-<p>
-This simulation combines:
-</p>
-
-<ul>
-<li>Orbital mechanics (Kepler laws)</li>
-<li>Energy conservation</li>
-<li>Hyperbolic trajectories</li>
-<li>Gravity assist physics</li>
-</ul>
-
-<p>
-It represents a simplified but realistic interplanetary mission design.
-</p>
-
+    <h3>6 &amp; 7. Trajectoire vers Neptune</h3>
+    <p>
+        Après le swing-by, $E_2 > 0$ : la sonde n'est plus liée au Soleil.
+        Le temps de vol Jupiter → Neptune est calculé par intégration numérique
+        $\displaystyle t_3 = \int_{r_J}^{r_N} \frac{dr}{\sqrt{2(E_2 + \mu_S/r)}}$.
+    </p>
 </div>
-<a href="{% url 'generate_pdf' %}">
-    <button type="button">📄 Download PDF</button>
-</a>
 
 </body>
 </html>
