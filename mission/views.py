@@ -6,10 +6,11 @@ from reportlab.lib.units import inch
 
 from .forms import TrajectoryForm
 from .core.trajectory import compute_trajectory
-from .core.plot import generate_real_trajectory, generate_hyperbola
 
 
 def generate_pdf(request, result):
+    from .core.plot import generate_real_trajectory, generate_hyperbola
+
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="Trajectory_report.pdf"'
 
